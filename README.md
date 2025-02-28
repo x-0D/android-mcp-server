@@ -77,6 +77,11 @@ Replace:
 - `path/to/uv` with the actual path to your `uv` executable
 - `path/to/android-mcp-server` with the absolute path to where you cloned this repository
 
+
+https://github.com/user-attachments/assets/c45bbc17-f698-43e7-85b4-f1b39b8326a8
+
+
+
 ### Available Tools
 
 The server exposes the following tools:
