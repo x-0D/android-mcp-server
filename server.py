@@ -1,8 +1,12 @@
 from adbdevicemanager import AdbDeviceManager
 from mcp.server.fastmcp import FastMCP, Image
+import yaml
+
+with open("config.yaml") as f:
+    config = yaml.safe_load(f.read())
 
 mcp = FastMCP("android")
-deviceManager = AdbDeviceManager("google-pixel-7-pro")
+deviceManager = AdbDeviceManager(config["device"]["name"])
 
 
 @mcp.tool()

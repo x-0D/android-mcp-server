@@ -12,3 +12,4 @@ wheels/
 # Project specific files
 *.png
 window_dump.xml
+output.mov
