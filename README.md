@@ -47,7 +47,7 @@ touch config.yaml
 
 ```yaml
 device:
-  name: "google-pixel-7-pro" # The IP address or hostname of the android device
+  name: "google-pixel-7-pro:5555" # Your device identifier from 'adb devices'
 ```
 
 ## Usage

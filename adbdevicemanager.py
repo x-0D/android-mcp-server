@@ -1,18 +1,10 @@
-from adb_shell.auth.sign_pythonrsa import PythonRSASigner
-from adb_shell.adb_device import AdbDeviceTcp
+from ppadb.client import Client as AdbClient
 import os
 from PIL import Image as PILImage
 
-
 class AdbDeviceManager:
     def __init__(self, device_name: str) -> None:
-        adbkey = os.path.join(os.path.expanduser("~"), ".android", "adbkey")
-        with open(adbkey) as f:
-            priv = f.read()
-        with open(adbkey + ".pub") as f:
-            pub = f.read()
-        self.device = AdbDeviceTcp(device_name, 5555, default_transport_timeout_s=9.0)
-        self.device.connect(rsa_keys=[PythonRSASigner(pub, priv)], auth_timeout_s=5)
+        self.device = AdbClient().device(device_name)
 
     def get_packages(self) -> str:
         command = "pm list packages"
@@ -60,7 +52,7 @@ class AdbDeviceManager:
         return result
 
     def take_screenshot(self) -> None:
-        self.device.shell("screencap -p > /sdcard/screenshot.png")
+        self.device.shell("screencap -p /sdcard/screenshot.png")
         self.device.pull("/sdcard/screenshot.png", "screenshot.png")
         self.device.shell("rm /sdcard/screenshot.png")
 
@@ -76,9 +68,6 @@ class AdbDeviceManager:
             resized_img.save(
                 "compressed_screenshot.png", "PNG", quality=85, optimize=True
             )
-        # with open("screenshot.png", "rb") as f:
-        #     screenshot_data = f.read()
-        # return screenshot_data
 
     def get_uilayout(self) -> str:
         self.device.shell("uiautomator dump")
