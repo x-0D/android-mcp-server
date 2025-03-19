@@ -13,3 +13,4 @@ wheels/
 *.png
 window_dump.xml
 output.mov
+config.yml
