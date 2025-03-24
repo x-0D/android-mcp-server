@@ -1,6 +1,11 @@
 # Android MCP Server
 
-An MCP (Model Context Protocol) server that provides programmatic control over Android devices through ADB (Android Debug Bridge). This server exposes various Android device management capabilities that can be accessed by MCP clients like [Claude desktop](https://modelcontextprotocol.io/quickstart/user) and Code editors (e.g. [Cursor](https://docs.cursor.com/context/model-context-protocol))
+An MCP (Model Context Protocol) server that provides programmatic control over
+Android devices through ADB (Android Debug Bridge). This server exposes
+various Android device management capabilities that can be accessed by MCP
+clients like [Claude desktop](https://modelcontextprotocol.io/quickstart/user)
+and Code editors
+(e.g. [Cursor](https://docs.cursor.com/context/model-context-protocol))
 
 ## Features
 
@@ -25,15 +30,19 @@ cd android-mcp-server
 ```
 
 2. Install dependencies:
-   This project uses `uv` for project management
+This project uses [uv](https://github.com/astral-sh/uv) for project
+management via various methods of
+[installation](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```bash
+uv python install 3.11
 uv sync
 ```
 
 ## Configuration
 
-The server uses a simple YAML configuration file (`config.yaml`) to specify the target android device
+The server uses a simple YAML configuration file (`config.yaml`) to specify the
+target android device
 
 ### Customizing Configuration
 
@@ -52,7 +61,8 @@ device:
 
 ## Usage
 
-An MCP client is needed to use this server. The Claude Desktop app is an example of an MCP client. To use this server with Claude Desktop:
+An MCP client is needed to use this server. The Claude Desktop app is an example
+of an MCP client. To use this server with Claude Desktop:
 
 1. Locate your Claude Desktop configuration file:
 
@@ -75,7 +85,8 @@ An MCP client is needed to use this server. The Claude Desktop app is an example
 Replace:
 
 - `path/to/uv` with the actual path to your `uv` executable
-- `path/to/android-mcp-server` with the absolute path to where you cloned this repository
+- `path/to/android-mcp-server` with the absolute path to where you cloned this
+repository
 
 
 https://github.com/user-attachments/assets/c45bbc17-f698-43e7-85b4-f1b39b8326a8
@@ -134,7 +145,8 @@ def get_package_action_intents(package_name: str) -> list[str]:
     Args:
         package_name (str): The name of the package to get actions for
     Returns:
-        list[str]: A list of all non-data actions from the Activity Resolver Table for the package
+        list[str]: A list of all non-data actions from the Activity Resolver
+        Table for the package
     """
 ```
 
@@ -144,4 +156,5 @@ Contributions are welcome!
 
 ## Acknowledgments
 
-- Built with [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction)
+- Built with
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction)
