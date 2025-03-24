@@ -1,5 +1,6 @@
 from adbdevicemanager import AdbDeviceManager
 from mcp.server.fastmcp import FastMCP, Image
+import shutil
 import yaml
 
 with open("config.yaml") as f:
@@ -8,6 +9,8 @@ with open("config.yaml") as f:
 mcp = FastMCP("android")
 deviceManager = AdbDeviceManager(config["device"]["name"])
 
+def command_exists(command):
+    return shutil.which(command) is not None
 
 @mcp.tool()
 def get_packages() -> str:
@@ -21,15 +24,31 @@ def get_packages() -> str:
 
 
 @mcp.tool()
-def execute_adb_command(command: str) -> str:
-    """Executes an ADB command and returns the output.
+def execute_adb_command(args: str) -> str:
+    """Executes an ADB command and returns the output or an error.
     Args:
-        command (str): The ADB command to execute
+        args (str): The ADB args to execute
     Returns:
         str: The output of the ADB command
     """
-    result = deviceManager.execute_adb_command(command)
-    return result
+
+    executables = ['adb']
+
+    found = False
+
+    for executable in executables:
+        exists = command_exists(executable)
+        if exists:
+            found = exists
+            command = executable
+            break
+
+    if found:
+        result = deviceManager.execute_adb_command(command + " " + args)
+        return result
+    else:
+        commands = ', '.join(executables)
+        return commands + " not found"
 
 
 @mcp.tool()
