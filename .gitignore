@@ -13,4 +13,5 @@ wheels/
 *.png
 window_dump.xml
 output.mov
-config.yml
+config.yaml
+test.py

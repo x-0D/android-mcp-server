@@ -1,16 +1,26 @@
 from adbdevicemanager import AdbDeviceManager
 from mcp.server.fastmcp import FastMCP, Image
-import shutil
+import os
+import sys
 import yaml
 
-with open("config.yaml") as f:
+CONFIG_FILE = "config.yaml"
+CONFIG_FILE_EXAMPLE = "config.yaml.example"
+
+# Check if config file exists
+if not os.path.exists(CONFIG_FILE):
+    print(f"Config file {CONFIG_FILE} not found. Please create it from {CONFIG_FILE_EXAMPLE}.", file=sys.stderr)
+    sys.exit(1)
+
+# Load config file
+with open(CONFIG_FILE) as f:
     config = yaml.safe_load(f.read())
+    device_name = config["device"]["name"]
 
+# Initialize MCP and device manager
+# Error checking is done inside AdbDeviceManager's constructor
 mcp = FastMCP("android")
-deviceManager = AdbDeviceManager(config["device"]["name"])
-
-def command_exists(command):
-    return shutil.which(command) is not None
+deviceManager = AdbDeviceManager(device_name)
 
 @mcp.tool()
 def get_packages() -> str:
@@ -22,34 +32,16 @@ def get_packages() -> str:
     result = deviceManager.get_packages()
     return result
 
-
 @mcp.tool()
-def execute_adb_command(args: str) -> str:
+def execute_adb_shell_command(command: str) -> str:
     """Executes an ADB command and returns the output or an error.
     Args:
-        args (str): The ADB args to execute
+        command (str): The ADB shell command to execute
     Returns:
         str: The output of the ADB command
     """
-
-    executables = ['adb']
-
-    found = False
-
-    for executable in executables:
-        exists = command_exists(executable)
-        if exists:
-            found = exists
-            command = executable
-            break
-
-    if found:
-        result = deviceManager.execute_adb_command(command + " " + args)
-        return result
-    else:
-        commands = ', '.join(executables)
-        return commands + " not found"
-
+    result = deviceManager.execute_adb_shell_command(command)
+    return result
 
 @mcp.tool()
 def get_uilayout() -> str:

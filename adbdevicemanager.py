@@ -1,11 +1,60 @@
 from ppadb.client import Client as AdbClient
+import subprocess
 import os
+import sys
 from PIL import Image as PILImage
 
 class AdbDeviceManager:
-    def __init__(self, device_name: str) -> None:
+    def __init__(self, device_name: str, exit_on_error: bool = True) -> None:
+        """
+        Initialize the ADB Device Manager
+        
+        Args:
+            device_name: Name/serial of the device to manage
+            exit_on_error: Whether to exit the program if device initialization fails
+        """
+        if not self.check_adb_installed():
+            error_msg = "adb is not installed or not in PATH. Please install adb and ensure it is in your PATH."
+            if exit_on_error:
+                print(error_msg, file=sys.stderr)
+                sys.exit(1)
+            else:
+                raise RuntimeError(error_msg)
+        
+        available_devices = self.get_available_devices()
+        if not available_devices:
+            error_msg = "No devices connected. Please connect a device and try again."
+            if exit_on_error:
+                print(error_msg, file=sys.stderr)
+                sys.exit(1)
+            else:
+                raise RuntimeError(error_msg)
+                
+        if device_name not in available_devices:
+            error_msg = f"Device {device_name} not found. Available devices: {available_devices}"
+            if exit_on_error:
+                print(error_msg, file=sys.stderr)
+                sys.exit(1)
+            else:
+                raise RuntimeError(error_msg)
+        
+        # Initialize the device
         self.device = AdbClient().device(device_name)
 
+    @staticmethod
+    def check_adb_installed() -> bool:
+        """Check if ADB is installed on the system."""
+        try:
+            subprocess.run(["adb", "version"], check=True, stdout=subprocess.PIPE)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
+    
+    @staticmethod
+    def get_available_devices() -> list[str]:
+        """Get a list of available devices."""
+        return [device.serial for device in AdbClient().devices()]
+    
     def get_packages(self) -> str:
         command = "pm list packages"
         packages = self.device.shell(command).strip().split("\n")
@@ -42,7 +91,7 @@ class AdbDeviceManager:
 
         return actions
 
-    def execute_adb_command(self, command: str) -> str:
+    def execute_adb_shell_command(self, command: str) -> str:
         """Executes an ADB command and returns the output."""
         if command.startswith("adb shell "):
             command = command[10:]
