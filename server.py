@@ -1,26 +1,52 @@
-from adbdevicemanager import AdbDeviceManager
-from mcp.server.fastmcp import FastMCP, Image
 import os
 import sys
+
 import yaml
+from mcp.server.fastmcp import FastMCP, Image
+
+from adbdevicemanager import AdbDeviceManager
 
 CONFIG_FILE = "config.yaml"
 CONFIG_FILE_EXAMPLE = "config.yaml.example"
 
-# Check if config file exists
-if not os.path.exists(CONFIG_FILE):
-    print(f"Config file {CONFIG_FILE} not found. Please create it from {CONFIG_FILE_EXAMPLE}.", file=sys.stderr)
-    sys.exit(1)
+# Load config (make config file optional)
+config = {}
+device_name = None
 
-# Load config file
-with open(CONFIG_FILE) as f:
-    config = yaml.safe_load(f.read())
-    device_name = config["device"]["name"]
+if os.path.exists(CONFIG_FILE):
+    try:
+        with open(CONFIG_FILE) as f:
+            config = yaml.safe_load(f.read()) or {}
+        device_config = config.get("device", {})
+        configured_device_name = device_config.get(
+            "name") if device_config else None
+
+        # Support multiple ways to specify auto-selection:
+        # 1. name: null (None in Python)
+        # 2. name: "" (empty string)
+        # 3. name field completely missing
+        if configured_device_name and configured_device_name.strip():
+            device_name = configured_device_name.strip()
+            print(f"Loaded config from {CONFIG_FILE}")
+            print(f"Configured device: {device_name}")
+        else:
+            print(f"Loaded config from {CONFIG_FILE}")
+            print(
+                "No device specified in config, will auto-select if only one device connected")
+    except Exception as e:
+        print(f"Error loading config file {CONFIG_FILE}: {e}", file=sys.stderr)
+        print(
+            f"Please check the format of your config file or recreate it from {CONFIG_FILE_EXAMPLE}", file=sys.stderr)
+        sys.exit(1)
+else:
+    print(
+        f"Config file {CONFIG_FILE} not found, using auto-selection for device")
 
 # Initialize MCP and device manager
-# Error checking is done inside AdbDeviceManager's constructor
+# AdbDeviceManager will handle auto-selection if device_name is None
 mcp = FastMCP("android")
 deviceManager = AdbDeviceManager(device_name)
+
 
 @mcp.tool()
 def get_packages() -> str:
@@ -32,6 +58,7 @@ def get_packages() -> str:
     result = deviceManager.get_packages()
     return result
 
+
 @mcp.tool()
 def execute_adb_shell_command(command: str) -> str:
     """Executes an ADB command and returns the output or an error.
@@ -42,6 +69,7 @@ def execute_adb_shell_command(command: str) -> str:
     """
     result = deviceManager.execute_adb_shell_command(command)
     return result
+
 
 @mcp.tool()
 def get_uilayout() -> str:

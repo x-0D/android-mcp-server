@@ -1,16 +1,19 @@
-from ppadb.client import Client as AdbClient
-import subprocess
 import os
+import subprocess
 import sys
+
 from PIL import Image as PILImage
+from ppadb.client import Client as AdbClient
+
 
 class AdbDeviceManager:
-    def __init__(self, device_name: str, exit_on_error: bool = True) -> None:
+    def __init__(self, device_name: str | None = None, exit_on_error: bool = True) -> None:
         """
         Initialize the ADB Device Manager
-        
+
         Args:
-            device_name: Name/serial of the device to manage
+            device_name: Optional name/serial of the device to manage.
+                         If None, attempts to auto-select if only one device is available.
             exit_on_error: Whether to exit the program if device initialization fails
         """
         if not self.check_adb_installed():
@@ -20,7 +23,7 @@ class AdbDeviceManager:
                 sys.exit(1)
             else:
                 raise RuntimeError(error_msg)
-        
+
         available_devices = self.get_available_devices()
         if not available_devices:
             error_msg = "No devices connected. Please connect a device and try again."
@@ -29,32 +32,51 @@ class AdbDeviceManager:
                 sys.exit(1)
             else:
                 raise RuntimeError(error_msg)
-                
-        if device_name not in available_devices:
-            error_msg = f"Device {device_name} not found. Available devices: {available_devices}"
-            if exit_on_error:
-                print(error_msg, file=sys.stderr)
-                sys.exit(1)
-            else:
-                raise RuntimeError(error_msg)
-        
+
+        selected_device_name: str | None = None
+
+        if device_name:
+            if device_name not in available_devices:
+                error_msg = f"Device {device_name} not found. Available devices: {available_devices}"
+                if exit_on_error:
+                    print(error_msg, file=sys.stderr)
+                    sys.exit(1)
+                else:
+                    raise RuntimeError(error_msg)
+            selected_device_name = device_name
+        else:  # No device_name provided, try auto-selection
+            if len(available_devices) == 1:
+                selected_device_name = available_devices[0]
+                print(
+                    f"No device specified, automatically selected: {selected_device_name}")
+            elif len(available_devices) > 1:
+                error_msg = f"Multiple devices connected: {available_devices}. Please specify a device in config.yaml or connect only one device."
+                if exit_on_error:
+                    print(error_msg, file=sys.stderr)
+                    sys.exit(1)
+                else:
+                    raise RuntimeError(error_msg)
+            # If len(available_devices) == 0, it's already caught by the earlier check
+
+        # At this point, selected_device_name should always be set due to the logic above
         # Initialize the device
-        self.device = AdbClient().device(device_name)
+        self.device = AdbClient().device(selected_device_name)
 
     @staticmethod
     def check_adb_installed() -> bool:
         """Check if ADB is installed on the system."""
         try:
-            subprocess.run(["adb", "version"], check=True, stdout=subprocess.PIPE)
+            subprocess.run(["adb", "version"], check=True,
+                           stdout=subprocess.PIPE)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
-    
+
     @staticmethod
     def get_available_devices() -> list[str]:
         """Get a list of available devices."""
         return [device.serial for device in AdbClient().devices()]
-    
+
     def get_packages(self) -> str:
         command = "pm list packages"
         packages = self.device.shell(command).strip().split("\n")
@@ -80,7 +102,7 @@ class AdbDeviceManager:
             non_data_section = resolver_section[non_data_start:]
         else:
             non_data_section = resolver_section[
-                non_data_start : non_data_start + section_end
+                non_data_start: non_data_start + section_end
             ]
 
         actions = []
@@ -123,8 +145,8 @@ class AdbDeviceManager:
         self.device.pull("/sdcard/window_dump.xml", "window_dump.xml")
         self.device.shell("rm /sdcard/window_dump.xml")
 
-        import xml.etree.ElementTree as ET
         import re
+        import xml.etree.ElementTree as ET
 
         def calculate_center(bounds_str):
             matches = re.findall(r"\[(\d+),(\d+)\]", bounds_str)
