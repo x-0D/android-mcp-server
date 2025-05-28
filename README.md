@@ -41,23 +41,81 @@ uv sync
 
 ## Configuration
 
-The server uses a simple YAML configuration file (`config.yaml`) to specify the
-target android device
+The server supports flexible device configuration with multiple usage scenarios.
 
-### Customizing Configuration
+### Device Selection Modes
 
-1. Create a new configuration file:
+**1. Automatic Selection (Recommended for single device)**
+
+- No configuration file needed
+- Automatically connects to the only connected device
+- Perfect for development with a single test device
+
+**2. Manual Device Selection**
+
+- Use when you have multiple devices connected
+- Specify exact device in configuration file
+
+### Configuration File (Optional)
+
+The configuration file (`config.yaml`) is **optional**. If not present, the server will automatically select the device if only one is connected.
+
+#### For Automatic Selection
+
+Simply ensure only one device is connected and run the server - no configuration needed!
+
+#### For Manual Selection
+
+1. Create a configuration file:
 
 ```bash
-touch config.yaml
+cp config.yaml.example config.yaml
 ```
 
-2. Configure your device:
+2. Edit `config.yaml` and specify your device:
 
 ```yaml
 device:
-  name: "google-pixel-7-pro:5555" # Your device identifier from 'adb devices'
+  name: "your-device-serial-here" # Device identifier from 'adb devices'
 ```
+
+**For auto-selection**, you can use any of these methods:
+
+```yaml
+device:
+  name: null              # Explicit null (recommended)
+  # name: ""              # Empty string  
+  # name:                 # Or leave empty/comment out
+```
+
+### Finding Your Device Serial
+
+To find your device identifier, run:
+
+```bash
+adb devices
+```
+
+Example output:
+
+```
+List of devices attached
+13b22d7f        device
+emulator-5554   device
+```
+
+Use the first column value (e.g., `13b22d7f` or `emulator-5554`) as the device name.
+
+### Usage Scenarios
+
+| Scenario | Configuration Required | Behavior |
+|----------|----------------------|----------|
+| Single device connected | None | ✅ Auto-connects to the device |
+| Multiple devices, want specific one | `config.yaml` with `device.name` | ✅ Connects to specified device |
+| Multiple devices, no config | None | ❌ Shows error with available devices |
+| No devices connected | N/A | ❌ Shows "no devices" error |
+
+**Note**: If you have multiple devices connected and don't specify which one to use, the server will show an error message listing all available devices.
 
 ## Usage
 
@@ -88,10 +146,7 @@ Replace:
 - `path/to/android-mcp-server` with the absolute path to where you cloned this
 repository
 
-
-https://github.com/user-attachments/assets/c45bbc17-f698-43e7-85b4-f1b39b8326a8
-
-
+<https://github.com/user-attachments/assets/c45bbc17-f698-43e7-85b4-f1b39b8326a8>
 
 ### Available Tools
 
