@@ -56,6 +56,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD adb version || exit 1
 
-# Run the MCP server with HTTP transport; entrypoint ensures adb server is started
+# Run the MCP server with both HTTP transports; entrypoint ensures adb server is started
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["python", "server.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "server.py", "--transport", "all", "--host", "0.0.0.0", "--port", "8000"]
