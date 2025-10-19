@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 
 import yaml
 from mcp.server.fastmcp import FastMCP, Image
@@ -109,4 +110,17 @@ def get_package_action_intents(package_name: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    parser = argparse.ArgumentParser(description="Android MCP Server")
+    parser.add_argument("--transport", default="stdio", choices=["stdio", "http"], 
+                       help="Transport method for MCP server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host for HTTP transport")
+    parser.add_argument("--port", type=int, default=8000, help="Port for HTTP transport")
+    
+    args = parser.parse_args()
+    
+    if args.transport == "http":
+        print(f"Starting Android MCP server on http://{args.host}:{args.port}/mcp")
+        mcp.run(transport="http", host=args.host, port=args.port, path="/mcp")
+    else:
+        print("Starting Android MCP server with stdio transport")
+        mcp.run(transport="stdio")
